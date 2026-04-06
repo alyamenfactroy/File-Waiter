@@ -1,74 +1,120 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { sampleEmployees } from "@/data/sampleData";
-import { Receipt, Download } from "lucide-react";
+import { samplePayroll } from "@/data/sampleData";
+import { Receipt, Download, CheckCircle, Clock, DollarSign, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Payroll() {
   const { t } = useLanguage();
-  const total = sampleEmployees.reduce((a, e) => a + e.salary, 0);
+
+  const totalNet = samplePayroll.reduce((a, p) => a + p.netSalary, 0);
+  const paid = samplePayroll.filter(p => p.status === "paid");
+  const pending = samplePayroll.filter(p => p.status === "pending");
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
-        <div className="glass-card p-4 border border-sky-500/20">
-          <p className="text-xs text-white/50 mb-1">Total Payroll</p>
-          <p className="text-xl font-bold text-sky-400">৳{total.toLocaleString()}</p>
+    <div className="space-y-5 page-enter">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-base font-bold text-white">{t("nav.payroll")}</h1>
+          <p className="text-xs text-white/40 mt-0.5">January 2024 — {samplePayroll.length} employees</p>
         </div>
-        <div className="glass-card p-4 border border-emerald-500/20">
-          <p className="text-xs text-white/50 mb-1">Active Employees</p>
-          <p className="text-xl font-bold text-emerald-400">{sampleEmployees.filter(e => e.status === "active").length}</p>
-        </div>
-        <div className="glass-card p-4 border border-amber-500/20">
-          <p className="text-xs text-white/50 mb-1">Month</p>
-          <p className="text-xl font-bold text-amber-400">January 2024</p>
+        <div className="flex gap-2">
+          <button className="btn-secondary"><Download size={14} /> Export</button>
+          <button className="btn-primary"><Receipt size={14} /> Process Payroll</button>
         </div>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {[
+          { label: "Total Payroll", value: `৳${totalNet.toLocaleString()}`, icon: <DollarSign size={16} />, color: "text-sky-400 bg-sky-400/10" },
+          { label: "Paid", value: paid.length, icon: <CheckCircle size={16} />, color: "text-emerald-400 bg-emerald-400/10" },
+          { label: "Pending", value: pending.length, icon: <Clock size={16} />, color: "text-amber-400 bg-amber-400/10" },
+          { label: "Total Staff", value: samplePayroll.length, icon: <Users size={16} />, color: "text-purple-400 bg-purple-400/10" },
+        ].map(c => (
+          <div key={c.label} className="glass-card p-4 stat-card">
+            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-2", c.color)}>{c.icon}</div>
+            <p className="text-xl font-bold text-white">{c.value}</p>
+            <p className="text-xs text-white/40 mt-0.5">{c.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
       <div className="glass-card overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Receipt size={16} className="text-sky-400" />
-            {t("nav.payroll")}
-          </h3>
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors" data-testid="button-export-payroll">
-            <Download size={12} />
-            {t("common.export")}
-          </button>
+        <div className="p-4 border-b border-white/05 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white">Payroll Details — January 2024</h3>
+          <span className="badge badge-blue">Month: January 2024</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-start py-3 px-4 text-xs font-medium text-white/40">Employee</th>
-                <th className="text-start py-3 px-4 text-xs font-medium text-white/40">{t("common.department")}</th>
-                <th className="text-start py-3 px-4 text-xs font-medium text-white/40">{t("common.position")}</th>
-                <th className="text-end py-3 px-4 text-xs font-medium text-white/40">Basic Salary</th>
-                <th className="text-end py-3 px-4 text-xs font-medium text-white/40">Bonus</th>
-                <th className="text-end py-3 px-4 text-xs font-medium text-white/40">Net Pay</th>
-                <th className="text-center py-3 px-4 text-xs font-medium text-white/40">{t("common.status")}</th>
+              <tr>
+                <th className="text-start">Employee</th>
+                <th className="text-center">Department</th>
+                <th className="text-end">Basic</th>
+                <th className="text-end">Bonus</th>
+                <th className="text-end">Overtime</th>
+                <th className="text-end">Deduction</th>
+                <th className="text-end">Net Salary</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
-              {sampleEmployees.map(emp => (
-                <tr key={emp.id} className="border-b border-white/3 hover:bg-white/3 transition-colors" data-testid={`row-payroll-${emp.id}`}>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-purple-500/10 flex items-center justify-center">
-                        <span className="text-xs font-bold text-purple-400">{emp.name[0]}</span>
+              {samplePayroll.map((p) => (
+                <tr key={p.employeeId}>
+                  <td>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500/20 to-indigo-500/20 border border-sky-500/15 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                        {p.employeeName.charAt(0)}
                       </div>
-                      <span className="text-xs text-white">{emp.name}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-white/85">{p.employeeName}</p>
+                        <p className="text-xs text-white/35 font-mono">{p.employeeId}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-white/50 text-xs">{emp.department}</td>
-                  <td className="py-3 px-4 text-white/50 text-xs">{emp.position}</td>
-                  <td className="py-3 px-4 text-end text-white text-xs">৳{emp.salary.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-end text-emerald-400 text-xs">৳{Math.floor(emp.salary * 0.1).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-end text-sky-400 font-semibold text-sm">৳{(emp.salary + Math.floor(emp.salary * 0.1)).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Paid</span>
+                  <td className="text-center">
+                    <span className="badge badge-blue text-xs">{p.department}</span>
+                  </td>
+                  <td className="text-end text-white/70 font-medium">৳{p.basicSalary.toLocaleString()}</td>
+                  <td className="text-end text-emerald-400/80 font-medium">+৳{p.bonus.toLocaleString()}</td>
+                  <td className="text-end text-sky-400/80 font-medium">+৳{p.overtime.toLocaleString()}</td>
+                  <td className="text-end text-red-400/80 font-medium">-৳{p.deduction.toLocaleString()}</td>
+                  <td className="text-end font-bold text-white/90">৳{p.netSalary.toLocaleString()}</td>
+                  <td className="text-center">
+                    <span className={cn("badge text-xs", p.status === "paid" ? "badge-green" : "badge-amber")}>
+                      {p.status === "paid" ? <CheckCircle size={10} /> : <Clock size={10} />}
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="text-center">
+                    {p.status === "pending" ? (
+                      <button className="text-xs px-2.5 py-1 rounded-lg bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/15 transition-colors font-medium">
+                        Pay Now
+                      </button>
+                    ) : (
+                      <button className="text-xs px-2.5 py-1 rounded-lg bg-white/05 text-white/40 hover:bg-white/08 transition-colors">
+                        Slip
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="bg-white/03">
+                <td colSpan={2} className="px-4 py-3">
+                  <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Total</span>
+                </td>
+                <td className="px-4 py-3 text-end font-bold text-white/70">৳{samplePayroll.reduce((a, p) => a + p.basicSalary, 0).toLocaleString()}</td>
+                <td className="px-4 py-3 text-end font-bold text-emerald-400">+৳{samplePayroll.reduce((a, p) => a + p.bonus, 0).toLocaleString()}</td>
+                <td className="px-4 py-3 text-end font-bold text-sky-400">+৳{samplePayroll.reduce((a, p) => a + p.overtime, 0).toLocaleString()}</td>
+                <td className="px-4 py-3 text-end font-bold text-red-400">-৳{samplePayroll.reduce((a, p) => a + p.deduction, 0).toLocaleString()}</td>
+                <td className="px-4 py-3 text-end font-bold gradient-text text-lg">৳{totalNet.toLocaleString()}</td>
+                <td colSpan={2} />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

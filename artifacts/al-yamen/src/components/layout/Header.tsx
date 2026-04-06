@@ -1,8 +1,10 @@
 import { Menu, Bell, Globe, Search, X, CheckCircle, AlertTriangle, Info, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { sampleNotifications } from "@/data/sampleData";
+import { Link } from "wouter";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -28,6 +30,7 @@ const notifDot: Record<string, string> = {
 
 export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
   const { language, setLanguage, t } = useLanguage();
+  const { user, logout } = useAuth();
   const [langOpen, setLangOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -55,13 +58,19 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
+  const roleColor: Record<string, string> = {
+    admin: "from-sky-400 to-indigo-500",
+    manager: "from-emerald-400 to-teal-500",
+    cashier: "from-purple-400 to-pink-500",
+  };
+
   return (
-    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/5 glass-panel sticky top-0 z-30">
+    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/05 glass-panel sticky top-0 z-30 flex-shrink-0">
       {/* Left */}
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+          className="lg:hidden p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/05 transition-colors"
           data-testid="button-mobile-menu"
         >
           <Menu size={20} />
@@ -79,12 +88,12 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
       {/* Right */}
       <div className="flex items-center gap-1.5">
 
-        {/* Search — expanded on click */}
+        {/* Search */}
         <div className={cn(
           "flex items-center gap-2 rounded-xl border transition-all duration-300 overflow-hidden",
           searchOpen
-            ? "w-48 md:w-64 bg-white/5 border-sky-400/30 px-3 py-2"
-            : "w-9 h-9 bg-transparent border-transparent justify-center cursor-pointer hover:bg-white/5 hover:border-white/08"
+            ? "w-48 md:w-64 bg-white/05 border-sky-400/30 px-3 py-2"
+            : "w-9 h-9 bg-transparent border-transparent justify-center cursor-pointer"
         )}>
           {searchOpen ? (
             <>
@@ -111,7 +120,7 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
         <div className="relative" data-dropdown>
           <button
             onClick={() => { setLangOpen(!langOpen); setNotifOpen(false); setUserOpen(false); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass-card hover:bg-white/8 transition-all text-white/75 hover:text-white text-sm"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass-card hover:bg-white/08 transition-all text-white/75 hover:text-white text-sm"
             data-testid="button-language-switcher"
           >
             <Globe size={14} className="text-sky-400" />
@@ -120,7 +129,7 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
           </button>
 
           {langOpen && (
-            <div className="absolute end-0 top-13 z-50 min-w-[150px] glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
+            <div className="absolute end-0 mt-2 z-50 min-w-[150px] glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
               <div className="px-4 py-2.5 border-b border-white/05">
                 <p className="text-xs text-white/35 font-medium uppercase tracking-wider">Language</p>
               </div>
@@ -149,7 +158,7 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
         <div className="relative" data-dropdown>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setLangOpen(false); setUserOpen(false); }}
-            className="relative p-2.5 rounded-xl glass-card hover:bg-white/8 transition-all text-white/55 hover:text-white"
+            className="relative p-2.5 rounded-xl glass-card hover:bg-white/08 transition-all text-white/55 hover:text-white"
             data-testid="button-notifications"
           >
             <Bell size={16} />
@@ -161,7 +170,7 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
           </button>
 
           {notifOpen && (
-            <div className="absolute end-0 top-13 z-50 w-80 glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
+            <div className="absolute end-0 mt-2 z-50 w-80 glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/05">
                 <div>
                   <p className="text-sm font-semibold text-white">Notifications</p>
@@ -202,35 +211,49 @@ export default function Header({ onMenuClick, pageTitle }: HeaderProps) {
         <div className="relative" data-dropdown>
           <button
             onClick={() => { setUserOpen(!userOpen); setLangOpen(false); setNotifOpen(false); }}
-            className="flex items-center gap-2 px-2.5 py-2 rounded-xl glass-card hover:bg-white/8 transition-all"
+            className="flex items-center gap-2 px-2.5 py-2 rounded-xl glass-card hover:bg-white/08 transition-all"
           >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
-              A
+            <div className={cn(
+              "w-7 h-7 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-xs",
+              roleColor[user?.role || "admin"] || "from-sky-400 to-indigo-500"
+            )}>
+              {user?.avatar || "A"}
             </div>
             <div className="hidden md:block text-start">
-              <p className="text-xs font-semibold text-white leading-none">Admin</p>
-              <p className="text-xs text-white/35 mt-0.5">Head Office</p>
+              <p className="text-xs font-semibold text-white leading-none">{user?.name?.split(" ")[0] || "Admin"}</p>
+              <p className="text-xs text-white/35 mt-0.5 capitalize">{user?.role || "Admin"}</p>
             </div>
             <ChevronDown size={12} className={cn("text-white/35 transition-transform", userOpen && "rotate-180")} />
           </button>
 
           {userOpen && (
-            <div className="absolute end-0 top-13 z-50 w-48 glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
+            <div className="absolute end-0 mt-2 z-50 w-52 glass-panel rounded-2xl overflow-hidden shadow-2xl border border-white/08 animate-fade-in">
               <div className="px-4 py-3 border-b border-white/05">
-                <p className="text-sm font-semibold text-white">Admin</p>
-                <p className="text-xs text-white/35 mt-0.5">admin@alyamen.com</p>
+                <div className="flex items-center gap-2.5">
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-sm",
+                    roleColor[user?.role || "admin"] || "from-sky-400 to-indigo-500"
+                  )}>
+                    {user?.avatar || "A"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
+                    <p className="text-xs text-white/35 truncate capitalize">{user?.role} — {user?.branch}</p>
+                  </div>
+                </div>
               </div>
-              {[
-                { icon: <User size={14} />, label: "My Profile" },
-                { icon: <Settings size={14} />, label: "Settings" },
-              ].map(item => (
-                <button key={item.label} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white/60 hover:text-white hover:bg-white/05 transition-colors text-start">
-                  <span className="text-white/35">{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
+              <Link href="/settings/system"
+                onClick={() => setUserOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white/60 hover:text-white hover:bg-white/05 transition-colors"
+              >
+                <Settings size={14} className="text-white/35" />
+                Settings
+              </Link>
               <div className="border-t border-white/05">
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/08 transition-colors text-start">
+                <button
+                  onClick={() => { logout(); setUserOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/08 transition-colors text-start"
+                >
                   <LogOut size={14} />
                   Sign Out
                 </button>

@@ -4,10 +4,6 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const pageTitles: Record<string, Record<string, string>> = {
-  "/": { "nav.dashboard": "/" },
-};
-
 function usePageTitle(): string {
   const [location] = useLocation();
   const { t } = useLanguage();
@@ -20,6 +16,9 @@ function usePageTitle(): string {
     "/sales/new-order": "nav.new_order",
     "/sales/order-history": "nav.order_history",
     "/sales/customers": "nav.customers",
+    "/purchase/new": "nav.new_purchase",
+    "/purchase/history": "nav.purchase_history",
+    "/purchase/suppliers": "nav.suppliers",
     "/inventory/add-product": "nav.add_product",
     "/inventory/add-company": "nav.add_company",
     "/inventory/stock-list": "nav.stock_list",
@@ -27,8 +26,14 @@ function usePageTitle(): string {
     "/hr/employees": "nav.employees",
     "/hr/payroll": "nav.payroll",
     "/hr/attendance": "nav.attendance",
+    "/crm/customers": "nav.customers",
+    "/crm/loyalty": "nav.loyalty",
     "/accounting/daily-ledger": "nav.daily_ledger",
     "/accounting/expense-report": "nav.expense_report",
+    "/accounting/bank-accounts": "nav.bank_accounts",
+    "/reports/profit-loss": "nav.profit_loss",
+    "/reports/sales-report": "nav.sales_report",
+    "/reports/stock-report": "nav.stock_report",
     "/settings/system": "nav.system_config",
     "/settings/user-roles": "nav.user_roles",
   };
@@ -42,11 +47,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pageTitle = usePageTitle();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen" style={{ background: "hsl(222 47% 7%)" }}>
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMenuClick={() => setMobileOpen(true)} pageTitle={pageTitle} />
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-5 overflow-auto scrollbar-thin">
           {children}
         </main>
       </div>

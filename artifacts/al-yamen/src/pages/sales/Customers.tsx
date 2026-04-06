@@ -1,7 +1,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { sampleCustomers } from "@/data/sampleData";
 import { cn } from "@/lib/utils";
-import { Users, Search, Phone, Mail } from "lucide-react";
+import { Users, Search, Phone, Mail, Plus, Edit2, Trash2, Star, Download } from "lucide-react";
 import { useState } from "react";
 
 export default function Customers() {
@@ -10,61 +10,112 @@ export default function Customers() {
 
   const filtered = sampleCustomers.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+    c.email.toLowerCase().includes(search.toLowerCase()) ||
+    c.phone.includes(search)
   );
 
+  const totalRevenue = sampleCustomers.reduce((a, c) => a + c.totalPurchase, 0);
+  const avgOrder = sampleCustomers.reduce((a, c) => a + c.totalPurchase, 0) / sampleCustomers.length;
+
   return (
-    <div className="space-y-4">
-      <div className="glass-card p-4 flex gap-3">
-        <div className="flex-1 relative">
-          <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <input type="search" placeholder={t("common.search")} value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl ps-9 pe-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-sky-400/40 transition-colors"
-            data-testid="input-search-customers" />
+    <div className="space-y-5 page-enter">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-base font-bold text-white">{t("nav.customers")}</h1>
+          <p className="text-xs text-white/40 mt-0.5">{sampleCustomers.length} registered customers</p>
         </div>
-        <button className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-xl transition-colors" data-testid="button-add-customer">
-          + {t("common.add")}
-        </button>
+        <div className="flex gap-2">
+          <button className="btn-secondary"><Download size={14} /> Export</button>
+          <button className="btn-primary"><Plus size={14} /> Add Customer</button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map(c => (
-          <div key={c.id} className="glass-card p-4 hover:border-sky-400/20 transition-all" data-testid={`card-customer-${c.id}`}>
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 border border-white/10">
-                <span className="text-sm font-bold text-sky-400">{c.name[0]}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{c.name}</p>
-                <p className="text-xs text-white/40 truncate">{c.address}</p>
-              </div>
-              <span className={cn("text-xs px-2 py-0.5 rounded-full flex-shrink-0",
-                c.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400")}>
-                {t(`common.${c.status}`)}
-              </span>
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {[
+          { label: "Total Customers", value: sampleCustomers.length, color: "text-sky-400 bg-sky-400/10" },
+          { label: "Total Revenue", value: `৳${(totalRevenue / 1000).toFixed(0)}K`, color: "text-emerald-400 bg-emerald-400/10" },
+          { label: "Avg Purchase", value: `৳${(avgOrder / 1000).toFixed(0)}K`, color: "text-purple-400 bg-purple-400/10" },
+          { label: "VIP Customers", value: sampleCustomers.filter(c => c.tier === "gold" || c.tier === "platinum").length, color: "text-amber-400 bg-amber-400/10" },
+        ].map(c => (
+          <div key={c.label} className="glass-card p-4 stat-card">
+            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-2", c.color)}>
+              <Users size={16} />
             </div>
-            <div className="space-y-1.5 mb-3">
-              <div className="flex items-center gap-2 text-xs text-white/50">
-                <Phone size={11} />
-                <span>{c.phone}</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-white/50">
-                <Mail size={11} />
-                <span className="truncate">{c.email}</span>
-              </div>
-            </div>
-            <div className="flex justify-between pt-3 border-t border-white/5">
-              <div className="text-center">
-                <p className="text-sm font-bold text-white">{c.totalOrders}</p>
-                <p className="text-xs text-white/40">Orders</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-sky-400">৳{(c.totalSpent / 1000).toFixed(0)}K</p>
-                <p className="text-xs text-white/40">Total</p>
-              </div>
-            </div>
+            <p className="text-xl font-bold text-white">{c.value}</p>
+            <p className="text-xs text-white/40 mt-0.5">{c.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Search */}
+      <div className="search-bar w-full">
+        <Search size={13} className="text-white/30 flex-shrink-0" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, or phone..." />
+      </div>
+
+      {/* Table */}
+      <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th className="text-start">Customer</th>
+                <th className="text-center">Phone</th>
+                <th className="text-center">Area</th>
+                <th className="text-center">Orders</th>
+                <th className="text-end">Total Purchase</th>
+                <th className="text-end">Due Balance</th>
+                <th className="text-center">Tier</th>
+                <th className="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c) => {
+                const tierCls = c.tier === "platinum" ? "badge-purple" : c.tier === "gold" ? "badge-amber" : c.tier === "silver" ? "badge-gray" : "badge-blue";
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 border border-sky-500/15 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                          {c.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white/85">{c.name}</p>
+                          <p className="text-xs text-white/35 flex items-center gap-1"><Mail size={9} /> {c.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="text-center text-white/55 text-xs">
+                      <span className="flex items-center justify-center gap-1"><Phone size={10} /> {c.phone}</span>
+                    </td>
+                    <td className="text-center text-white/45 text-xs">{c.address}</td>
+                    <td className="text-center font-semibold text-sky-400">{c.totalOrders}</td>
+                    <td className="text-end font-bold text-white/80">৳{c.totalPurchase.toLocaleString()}</td>
+                    <td className={cn("text-end font-bold", c.dueBalance > 0 ? "text-red-400" : "text-emerald-400")}>
+                      {c.dueBalance > 0 ? `-৳${c.dueBalance.toLocaleString()}` : "Clear"}
+                    </td>
+                    <td className="text-center">
+                      <span className={cn("badge text-xs gap-1 capitalize", tierCls)}>
+                        {(c.tier === "gold" || c.tier === "platinum") && <Star size={9} />}
+                        {c.tier}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button className="btn-icon text-sky-400/60 hover:text-sky-400 hover:bg-sky-400/10"><Edit2 size={12} /></button>
+                        <button className="btn-icon text-red-400/60 hover:text-red-400 hover:bg-red-400/10"><Trash2 size={12} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <div className="py-12 text-center text-white/30 text-sm">No customers found</div>
+        )}
       </div>
     </div>
   );

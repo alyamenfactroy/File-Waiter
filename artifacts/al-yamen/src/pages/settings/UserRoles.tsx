@@ -1,80 +1,122 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Shield, UserCog, Check } from "lucide-react";
+import { Shield, UserCog, Check, Crown, User, Eye, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const roles = [
   {
-    name: "Super Admin",
-    users: 1,
-    color: "sky",
-    permissions: ["Dashboard", "Transactions", "Sales", "Inventory", "HR", "Accounting", "Settings"],
-  },
-  {
-    name: "Manager",
+    id: "admin",
+    name: "Administrator",
+    description: "Full system access. Can manage all settings, users, and data.",
+    icon: <Crown size={18} />,
+    color: "from-red-500/20 to-orange-500/20 border-red-500/20 text-red-400",
+    badge: "badge-red",
     users: 2,
-    color: "purple",
-    permissions: ["Dashboard", "Transactions", "Sales", "Inventory", "HR"],
+    permissions: {
+      dashboard: true, transactions: true, sales: true, purchase: true,
+      inventory: true, hr: true, crm: true, accounting: true,
+      reports: true, settings: true, userManagement: true, deleteRecords: true,
+    },
   },
   {
-    name: "Sales Staff",
+    id: "manager",
+    name: "Manager",
+    description: "Access to most modules. Cannot delete records or change system settings.",
+    icon: <Shield size={18} />,
+    color: "from-sky-500/20 to-indigo-500/20 border-sky-500/20 text-sky-400",
+    badge: "badge-blue",
     users: 3,
-    color: "emerald",
-    permissions: ["Dashboard", "Sales", "Inventory View"],
+    permissions: {
+      dashboard: true, transactions: true, sales: true, purchase: true,
+      inventory: true, hr: true, crm: true, accounting: true,
+      reports: true, settings: false, userManagement: false, deleteRecords: false,
+    },
   },
   {
-    name: "Accountant",
+    id: "cashier",
+    name: "Cashier",
+    description: "Limited to transactions, sales, and viewing reports only.",
+    icon: <User size={18} />,
+    color: "from-emerald-500/20 to-teal-500/20 border-emerald-500/20 text-emerald-400",
+    badge: "badge-green",
+    users: 5,
+    permissions: {
+      dashboard: true, transactions: true, sales: true, purchase: false,
+      inventory: false, hr: false, crm: false, accounting: false,
+      reports: false, settings: false, userManagement: false, deleteRecords: false,
+    },
+  },
+  {
+    id: "viewer",
+    name: "Viewer",
+    description: "Read-only access to dashboard and reports. Cannot create or edit.",
+    icon: <Eye size={18} />,
+    color: "from-purple-500/20 to-violet-500/20 border-purple-500/20 text-purple-400",
+    badge: "badge-purple",
     users: 1,
-    color: "amber",
-    permissions: ["Dashboard", "Transactions", "Accounting"],
+    permissions: {
+      dashboard: true, transactions: false, sales: false, purchase: false,
+      inventory: false, hr: false, crm: false, accounting: false,
+      reports: true, settings: false, userManagement: false, deleteRecords: false,
+    },
   },
 ];
 
-const colorMap: Record<string, string> = {
-  sky: "bg-sky-500/10 text-sky-400 border-sky-500/20",
-  purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  amber: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+const permissionLabels: Record<string, string> = {
+  dashboard: "Dashboard", transactions: "Transactions", sales: "Sales",
+  purchase: "Purchase", inventory: "Inventory", hr: "HR Management",
+  crm: "CRM", accounting: "Accounting", reports: "Reports",
+  settings: "Settings", userManagement: "User Management", deleteRecords: "Delete Records",
 };
 
 export default function UserRoles() {
   const { t } = useLanguage();
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-xl transition-colors" data-testid="button-add-role">
-          + Add Role
-        </button>
+    <div className="space-y-5 page-enter">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-base font-bold text-white">{t("nav.user_roles")}</h1>
+          <p className="text-xs text-white/40 mt-0.5">Manage user roles and permissions</p>
+        </div>
+        <button className="btn-primary"><Plus size={14} /> Create Role</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {roles.map(role => (
-          <div key={role.name} className={cn("glass-card p-5 border", colorMap[role.color].split(" ")[2])} data-testid={`card-role-${role.name}`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colorMap[role.color].split(" ")[0])}>
-                  <Shield size={18} className={colorMap[role.color].split(" ")[1]} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">{role.name}</p>
-                  <p className="text-xs text-white/40">{role.users} user{role.users > 1 ? "s" : ""}</p>
-                </div>
+      {/* Role Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {roles.map((role) => (
+          <div key={role.id} className="glass-card p-5">
+            <div className="flex items-start gap-4 mb-4">
+              <div className={cn("w-12 h-12 rounded-2xl bg-gradient-to-br border flex items-center justify-center flex-shrink-0", role.color)}>
+                {role.icon}
               </div>
-              <button className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/60 rounded-lg transition-colors" data-testid={`button-edit-role-${role.name}`}>
-                {t("common.edit")}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-bold text-white">{role.name}</h3>
+                  <span className={cn("badge text-xs", role.badge)}>{role.users} users</span>
+                </div>
+                <p className="text-xs text-white/45 leading-relaxed">{role.description}</p>
+              </div>
+              <button className="btn-icon text-sky-400/60 hover:text-sky-400 hover:bg-sky-400/10">
+                <UserCog size={14} />
               </button>
             </div>
 
-            <div className="space-y-1.5">
-              <p className="text-xs text-white/40 mb-2">{t("settings.permissions")}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {role.permissions.map(perm => (
-                  <span key={perm} className={cn("flex items-center gap-1 text-xs px-2 py-0.5 rounded-full", colorMap[role.color].split(" ")[0], colorMap[role.color].split(" ")[1])}>
-                    <Check size={10} />
-                    {perm}
+            <div className="divider mb-4" />
+
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {Object.entries(role.permissions).map(([key, allowed]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0",
+                    allowed ? "bg-emerald-400/15 border border-emerald-400/25" : "bg-white/04 border border-white/07"
+                  )}>
+                    {allowed && <Check size={9} className="text-emerald-400" />}
+                  </div>
+                  <span className={cn("text-xs", allowed ? "text-white/70" : "text-white/25")}>
+                    {permissionLabels[key]}
                   </span>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
